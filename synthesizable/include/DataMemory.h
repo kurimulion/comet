@@ -10,6 +10,8 @@
 
 #include "portability.h"
 
+typedef enum { NONE = 0, LOAD, STORE } memOpType;
+
 //NOTE: Only supports aligned accesses
 class DataMemory {
 

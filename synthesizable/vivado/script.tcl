@@ -3,8 +3,8 @@
 ## Please DO NOT edit it.
 ## Copyright (C) 2015 Xilinx Inc. All rights reserved.
 ############################################################
-open_project doStep
-set_top doStep
+open_project doCore
+set_top doCore
 add_files ../src/core.cpp -cflags "-I../include -D__VIVADO__=1 -Wall -O0 -g -fmessage-length=0 -D__SDSCC__ -I/opt/Xilinx/SDSoC/2016.1/aarch32-linux/include -I/udd/emascare/Work/Code/Main/merge/sdsoc/riscv/src -D__SDSVHLS__ -w"
 open_solution "solution"
 set_part {xc7z010clg400-2}
@@ -15,4 +15,5 @@ source "./directives.tcl"
 csynth_design
 #cosim_design
 export_design -format ip_catalog
+
 

@@ -200,6 +200,38 @@ CORE_UINT(32) doStat(CORE_UINT(32) filename, CORE_UINT(32) ptr){
 	return result;
 }
 
+CORE_INT(32) doFstat(const CORE_UINT(32) file, const CORE_UINT(32) stataddr)
+{
+  CORE_INT(32) result  = 0;
+  struct stat filestat = {0};
+
+  if (file != 1)
+    result = fstat(file, &filestat);
+
+  _std(stataddr, filestat.st_dev);               // unsigned long long
+  _std(stataddr + 8, filestat.st_ino);           // unsigned long long
+  stw(stataddr + 16, filestat.st_mode);         // unsigned int
+  stw(stataddr + 20, filestat.st_nlink);        // unsigned int
+  stw(stataddr + 24, filestat.st_uid);          // unsigned int
+  stw(stataddr + 28, filestat.st_gid);          // unsigned int
+  _std(stataddr + 32, filestat.st_rdev);         // unsigned long long
+  _std(stataddr + 40, filestat.__pad0);          // unsigned long long
+  _std(stataddr + 48, filestat.st_size);         // long long
+  stw(stataddr + 56, filestat.st_blksize);      // int
+  stw(stataddr + 60, filestat.__pad0);          // int
+  _std(stataddr + 64, filestat.st_blocks);       // long long
+  stw(stataddr + 72, filestat.st_atim.tv_sec);  // long
+  stw(stataddr + 76, filestat.st_atim.tv_nsec); // long
+  stw(stataddr + 80, filestat.st_mtim.tv_sec);  // long
+  stw(stataddr + 84, filestat.st_mtim.tv_nsec); // long
+  stw(stataddr + 88, filestat.st_ctim.tv_sec);  // long
+  stw(stataddr + 92, filestat.st_ctim.tv_nsec); // long
+  stw(stataddr + 96, filestat.__pad0);          // long
+  stw(stataddr + 100, filestat.__pad0);         // long
+
+  return result;
+}
+
 CORE_UINT(32) doSbrk(CORE_UINT(32) value){
 	return 0;
 }

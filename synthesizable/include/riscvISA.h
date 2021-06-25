@@ -1,24 +1,42 @@
-
-/*
-* riscvISA.h
+/** Copyright 2021 INRIA, Université de Rennes 1 and ENS Rennes
 *
-* Created on: 2 déc. 2016
-* Author: simon
+*   Licensed under the Apache License, Version 2.0 (the "License");
+*   you may not use this file except in compliance with the License.
+*   You may obtain a copy of the License at
+*       http://www.apache.org/licenses/LICENSE-2.0
+*   Unless required by applicable law or agreed to in writing, software
+*   distributed under the License is distributed on an "AS IS" BASIS,
+*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*   See the License for the specific language governing permissions and
+*   limitations under the License.
 */
+
+
+
 #ifndef INCLUDES_ISA_RISCVISA_H_
 #define INCLUDES_ISA_RISCVISA_H_
-#include <string.h>
-#define RISCV_LUI 0x37
-#define RISCV_AUIPC 0x17
-#define RISCV_JAL 0x6f
-#define RISCV_JALR 0x67
-#define RISCV_BR 0x63
-#define RISCV_LD 0x3
-#define RISCV_ST 0x23
-#define RISCV_OPI 0x13
-#define RISCV_OP 0x33
-#define RISCV_OPIW 0x1b
-#define RISCV_OPW 0x3b
+
+#include <string>
+
+#ifndef __HLS__
+std::string printDecodedInstrRISCV(unsigned int oneInstruction);
+#endif
+
+// Major opcodes
+#define RISCV_LUI 0x37      // 0x0D
+#define RISCV_AUIPC 0x17    // 0x05
+#define RISCV_JAL 0x6F      // 0x1B
+#define RISCV_JALR 0x67     // 0x19
+#define RISCV_BR 0x63       // 0x18
+#define RISCV_LD 0x03       // 0x00
+#define RISCV_ST 0x23       // 0x08
+#define RISCV_OPI 0x13      // 0x04
+#define RISCV_OP 0x33       // 0x0C
+#define RISCV_MISC_MEM 0x0F // 0x03
+#define RISCV_OPIW 0x1B     // 0x06
+#define RISCV_OPW 0x3B      // 0x0E
+
+// funct3 or funct7
 #define RISCV_BR_BEQ 0x0
 #define RISCV_BR_BNE 0x1
 #define RISCV_BR_BLT 0x4
@@ -43,7 +61,7 @@
 #define RISCV_OPI_ORI 0x6
 #define RISCV_OPI_ANDI 0x7
 #define RISCV_OPI_SLLI 0x1
-#define RISCV_OPI_SRI 0x5
+#define RISCV_OPI_SRI 0x5 // SRLI & SRAI
 #define RISCV_OPI_SRI_SRAI 0x20
 #define RISCV_OPI_SRI_SRLI 0x0
 #define RISCV_OP_ADD 0x0
@@ -58,7 +76,6 @@
 #define RISCV_OP_ADD_SUB 0x20
 #define RISCV_OP_SR_SRL 0x0
 #define RISCV_OP_SR_SRA 0x20
-#define RISCV_SYSTEM 0x73
 #define RISCV_OPIW_ADDIW 0x0
 #define RISCV_OPIW_SLLIW 0x1
 #define RISCV_OPIW_SRW 0x5
@@ -71,6 +88,13 @@
 #define RISCV_OPW_ADDSUBW_SUBW 0x20
 #define RISCV_OPW_SRW_SRLW 0x0
 #define RISCV_OPW_SRW_SRAW 0x20
+
+/******************************************************************************************************
+ * Specification of the privileged architecture *
+ ******************************************************************************************************
+ * This offers system capability *
+ ******************************************************************************************************/
+#define RISCV_SYSTEM 0x73 // 0x1C
 #define RISCV_SYSTEM_ENV 0x0
 #define RISCV_SYSTEM_ENV_ECALL 0x0
 #define RISCV_SYSTEM_ENV_EBREAK 0x1
@@ -80,15 +104,72 @@
 #define RISCV_SYSTEM_CSRRWI 0x5
 #define RISCV_SYSTEM_CSRRSI 0x6
 #define RISCV_SYSTEM_CSRRCI 0x7
-//FIXME some special operations of the base instruction set are not yet supported. (FENCE)
+
+#define RISCV_CSR_MVENDORID 0xF11 // MRO mvendorid Vendor ID.
+#define RISCV_CSR_MARCHID 0xF12   // MRO marchid Architecture ID.
+#define RISCV_CSR_MIMPID 0xF13    // MRO mimpid Implementation ID.
+#define RISCV_CSR_MHARTID 0xF14   // MRO mhartid Hardware thread ID.
+// Machine Trap Setup
+#define RISCV_CSR_MSTATUS 0x300           // MRW mstatus Machine status register.
+#define RISCV_CSR_MSTATUS_WIRI 0x00000000 // ignore those bits in read & write
+#define RISCV_CSR_MSTATUS_WPRI 0x7F100644 // preserve bits in write, ignore read
+#define RISCV_CSR_MSTATUS_WLRL 0x00000000 // R/W legal value only
+#define RISCV_CSR_MSTATUS_WARL 0x00001900 // write any, read legal
+
+#define RISCV_CSR_MISA 0x301           // MRW misa ISA and extensions
+#define RISCV_CSR_MISA_WIRI 0x3C000000 // ignore those bits in read & write
+#define RISCV_CSR_MISA_WPRI 0x00000000 // preserve bits in write, ignore read
+#define RISCV_CSR_MISA_WLRL 0x00000000 // R/W legal value only
+#define RISCV_CSR_MISA_WARL 0xC3FFFFFF // write any, read legal
+
+#define RISCV_CSR_MEDELEG 0x302           // MRW medeleg Machine exception delegation register.
+#define RISCV_CSR_MEDELEG_WARL 0xFFFFFFFF // write any, read legal
+
+#define RISCV_CSR_MIDELEG 0x303           // MRW mideleg Machine interrupt delegation register.
+#define RISCV_CSR_MIDELEG_WARL 0xFFFFFFFF // write any, read legal
+
+#define RISCV_CSR_MIE 0x304           // MRW mie Machine interrupt-enable register.
+#define RISCV_CSR_MIE_WIRI 0x00000000 // ignore those bits in read & write
+#define RISCV_CSR_MIE_WPRI 0xFFFFF444 // preserve bits in write, ignore read
+#define RISCV_CSR_MIE_WLRL 0x00000000 // R/W legal value only
+#define RISCV_CSR_MIE_WARL 0x00000BBB // write any, read legal
+
+#define RISCV_CSR_MTVEC 0x305           // MRW mtvec Machine trap-handler base address.
+#define RISCV_CSR_MTVEC_WARL 0xFFFFFFFF // write any, read legal
+
+#define RISCV_CSR_MCOUNTEREN 0x306 // MRW mcounteren Machine counter enable.
+
+// Machine Trap Handling
+#define RISCV_CSR_MSCRATCH 0x340 // MRW mscratch Scratch register for machine trap handlers.
+#define RISCV_CSR_MEPC 0x341     // MRW mepc Machine exception program counter.
+#define RISCV_CSR_MEPC_WARL 0xFFFFFFFF
+
+#define RISCV_CSR_MCAUSE 0x342 // MRW mcause Machine trap cause.
+#define RISCV_CSR_MCAUSE_WLRL 0x7FFFFFFF
+
+#define RISCV_CSR_MTVAL 0x343 // MRW mtval Machine bad address or instruction.
+
+#define RISCV_CSR_MIP 0x344           // MRW mip Machine interrupt pending.
+#define RISCV_CSR_MIP_WIRI 0xFFFFF444 // ignore those bits in read & write
+#define RISCV_CSR_MIP_WARL 0x00000BBB // write any, read legal
+
+// Machine Protection and Translation
+// not implemented
+
+// Machine Counter/Timers
+#define RISCV_CSR_MCYCLE 0xB00    // MRW mcycle Machine cycle counter.
+#define RISCV_CSR_MINSTRET 0xB02  // MRW minstret Machine instructions-retired counter.
+#define RISCV_CSR_MCYCLEH 0xB80   // MRW mcycleh Upper 32 bits of mcycle, RV32I only.
+#define RISCV_CSR_MINSTRETH 0xB82 // MRW minstreth Upper 32 bits of minstret, RV32I only.
+
 /******************************************************************************************************
-* Specification of the standard M extension
-********************************************
-* This extension brings the support for multiplication operation.
-* It is composed of the RISCV_OP opcode then a dedicated value for funct7 which identify it.
-* Then funct3 is used to determine which of the eight operation to use.
-* Added operations are MUL, MULH, MULHSU, MLHU, DIV, DIVU, REM, REMU
-*****************************************************************************************************/
+ * Specification of the standard M extension
+ ********************************************
+ * This extension brings the support for multiplication operation.
+ * It is composed of the RISCV_OP opcode then a dedicated value for funct7 which
+ *identify it. Then funct3 is used to determine which of the eight operation to
+ *use. Added operations are MUL, MULH, MULHSU, MLHU, DIV, DIVU, REM, REMU
+ *****************************************************************************************************/
 #define RISCV_OP_M 0x1
 #define RISCV_OP_M_MUL 0x0
 #define RISCV_OP_M_MULH 0x1
@@ -103,9 +184,32 @@
 #define RISCV_OPW_M_DIVUW 0x5
 #define RISCV_OPW_M_REMW 0x6
 #define RISCV_OPW_M_REMUW 0x7
+
+/******************************************************************************************************
+ * Specification of the standard A extension
+ ********************************************
+ * This extension brings the support for atomic operation.
+ * It is always of R-type instruction, and funct3 is always 0b010
+ * Then funct7[6:2] is used to determine which of the eleven operation to use.
+ * Added operations are LR, SC, AMOSWAP, AMOADD, AMOXOR, AMOAND, AMOOR, AMOMIN,
+ *AMOMAX, AMOMINU, AMOMAXU
+ *****************************************************************************************************/
+#define RISCV_ATOMIC 0x2F // 0x0B
+#define RISCV_ATOMIC_LR 0x2
+#define RISCV_ATOMIC_SC 0x3
+#define RISCV_ATOMIC_SWAP 0x1
+#define RISCV_ATOMIC_ADD 0x0
+#define RISCV_ATOMIC_XOR 0x4
+#define RISCV_ATOMIC_AND 0xC
+#define RISCV_ATOMIC_OR 0x8
+#define RISCV_ATOMIC_MIN 0x10
+#define RISCV_ATOMIC_MAX 0x14
+#define RISCV_ATOMIC_MINU 0x18
+#define RISCV_ATOMIC_MAXU 0x1C
+
 #ifndef __CATAPULT
 #ifndef __NIOS
-//std::string printDecodedInstrRISCV(uint32 instruction);
+// std::string printDecodedInstrRISCV(uint32 instruction);
 extern const char* riscvNamesOP[8];
 extern const char* riscvNamesOPI[8];
 extern const char* riscvNamesOPW[8];
@@ -157,4 +261,22 @@ extern const char* riscvNames[8];
 #define SYS_fcntl 25
 #define SYS_getdents 61
 #define SYS_dup 23
+
+// Custom syscall
+#define SYS_threadstart 0x1234
+#define SYS_nbcore 0x4321
+// end of custom syscall
+
+// Translation of flags from riscv to local machine
+#define SYS_O_RDONLY 0x0
+#define SYS_O_WRONLY 0x1
+#define SYS_O_RDWR 0x2
+#define SYS_O_APPEND 0x8
+#define SYS_O_CREAT 0x200
+#define SYS_O_TRUNC 0x400
+#define SYS_O_EXCL 0x800
+#define SYS_O_SYNC 0x2000
+#define SYS_O_NONBLOCK 0x4000
+#define SYS_O_NOCTTY 0x8000
+
 #endif /* INCLUDES_ISA_RISCVISA_H_ */

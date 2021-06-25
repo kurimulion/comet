@@ -2,7 +2,7 @@ make
 mkdir -p debug_output
 for f in ./build/*.out; do
 	echo "begining RISCV simulation for "$f
-	./simRISCV -v -f $f &> "./debug_output/"`basename $f`".debug" &
+	../vivado.sim -f $f &> "./debug_output/"`basename $f`".debug" &
 	pid=$!
 	spin[0]="-"
 	spin[1]="\\"
@@ -20,3 +20,4 @@ for f in ./build/*.out; do
 	done
 	echo "done.."
 done
+
