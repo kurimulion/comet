@@ -123,7 +123,7 @@ public:
     
     void _update(CORE_UINT(32) pc, bool isBranch) {
         if (pd == isBranch && dp > THRESHOLD) return;
-        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 0);
+        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 2);
         if (isBranch) {
             if (perceptron[index][SIZE] < PERC_INC_TH) perceptron[index][SIZE] += LR;
         } else {
@@ -158,7 +158,7 @@ public:
     }
     
     void _process(CORE_UINT(32) pc, bool& isBranch) {
-        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 0);
+        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 2);
         _predict(index);
         isBranch = pd;
     }
@@ -192,7 +192,7 @@ public:
     
     void _update(CORE_UINT(32) pc, bool isBranch) {
         if (pd == isBranch && dp > THRESHOLD) return;
-        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 0);
+        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 2);
         if (isBranch) {
             if (perceptron[index][SIZE] < PERC_INC_TH) perceptron[index][SIZE] += LR;
         } else {
@@ -261,12 +261,37 @@ public:
     }
     
     void _process(CORE_UINT(32) pc, bool& isBranch) {
-        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 0);
+        CORE_UINT(LOG_ENTRIES) index = pc.SLC(LOG_ENTRIES, 2);
         _predict(index);
         isBranch = pd;
     }
 };
 
-using BranchPredictor = BitBranchPredictor<2, 4>;
+template<int CORRELATION_BITS, int PREDICTOR_BITS, int ENTRIES>
+class CorrelatingPredictor : public BranchPredictorWrapper<CorrelatingPredictor<CORRELATION_BITS, PREDICTOR_BITS, ENTRIES> > {
+  static const int NUM_PREDICTORS = (1 << CORRELATION_BITS);
+
+  BitBranchPredictor<PREDICTOR_BITS, ENTRIES> bp[NUM_PREDICTORS];
+  CORE_UINT(CORRELATION_BITS) bhr;
+
+  public:
+    CorrelatingPredictor() {
+        bhr = 0;
+    }
+
+    void _update(CORE_UINT(32) pc, bool isBranch) {
+      bp[(int)bhr]._update(pc, isBranch);
+      bhr = bhr << 1; 
+      bhr[0] = isBranch;
+    }
+
+    void _process(CORE_UINT(32) pc, bool& isBranch) {
+      bp[(int)bhr]._process(pc, isBranch);
+    }
+};
+
+// using BranchPredictor = BitBranchPredictor<2, 64>;
+// using BranchPredictor = PerceptronBranchPredictorV2<2, 16, 32, 17, 1>;
+using BranchPredictor = CorrelatingPredictor<2, 2, 16>;
 
 #endif /* INCLUDE_BRANCHPREDICTOR_H_ */
