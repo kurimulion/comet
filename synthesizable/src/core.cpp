@@ -684,7 +684,7 @@ void doCycle(struct Core& core, // Core containing all values
   if (!core.stallSignals[STALL_DECODE] && !localStall && !core.stallIm && !core.stallDm) {
     // branch predictor
     if (dctoEx_temp.opCode == RISCV_BR && dctoEx_temp.we) {
-      core.bp.process(dctoEx_temp.pc, dctoEx_temp.predBranch);
+     core.bp._process(dctoEx_temp.pc, dctoEx_temp.predBranch);
     }
     core.dctoEx = dctoEx_temp;
 
@@ -721,7 +721,7 @@ void doCycle(struct Core& core, // Core containing all values
 
   if (!core.stallSignals[STALL_EXECUTE] && !localStall && !core.stallIm && !core.stallDm) {
     if (extoMem_temp.opCode == RISCV_BR && extoMem_temp.we) {
-      core.bp.update(extoMem_temp.pc, extoMem_temp.isBranch);
+     core.bp._update(extoMem_temp.pc, extoMem_temp.isBranch);
     }
     core.extoMem = extoMem_temp;
   }
