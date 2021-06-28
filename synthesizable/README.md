@@ -30,7 +30,7 @@ processor, is defined in [reformeddm_sim.cpp](src/reformeddm_sim.cpp).
 
 To run simulation:
 ```
-./vivado.sim -f [path-to-execution]
+./vivado.sim -f [path-to-executable]
 ```
 content of data memory before execution, cycle counts, and data memory after execution will be printed.
 
